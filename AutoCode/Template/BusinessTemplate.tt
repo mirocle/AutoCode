@@ -1,0 +1,257 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ Import namespace="System.Data" #>
+<#@ Import namespace="AutoCode.Config" #>
+
+using System;
+using System.Collections.Generic;
+using System.Data;
+using Core.DataAccess;
+<#
+	if(NameSpace =="")
+	{
+#>
+using Common;
+using DataAccess;
+
+namespace Business
+<#
+	}
+	else
+	{
+#>
+using <#=NameSpace #>.Common;
+using <#=NameSpace #>.DataAccess;
+
+namespace <#=NameSpace #>.Business
+<#
+	}
+#>
+{
+	/// <summary>
+	/// <#=ReTableName #>
+	/// </summary>
+	public partial class <#=BusinessClassName #>
+	{
+		#region GetByID
+		/// <summary>
+		/// 取得实体
+		/// </summary>
+		/// <param name="id">实体关键字</param>
+		/// <returns>实体实例</returns>
+		public static <#= EntityClassName #> Get<#= ReTableName #>ByID(<#=PrimaryColunm[1] #> id)
+		{
+			return <#= AccessClassName #>.Get<#= ReTableName #>ByID(id);
+		}
+		#endregion
+
+		#region Insert
+		/// <summary>
+		/// 插入数据
+		/// </summary>
+		/// <param name="obj<#= EntityClassName #>">实体实例</param>
+		/// <returns>true 插入成功; false 插入失败</returns>
+		public static bool Insert<#= ReTableName #>(<#= EntityClassName #> obj<#= EntityClassName #>)
+		{
+			if (obj<#= EntityClassName #> == null)
+			{
+				return false;
+			}
+			try
+			{
+				return DataAccessCommon.Insert(obj<#= EntityClassName #>);
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+		}
+		#endregion
+
+		#region Update
+		/// <summary>
+		/// 更新数据
+		/// </summary>
+		/// <param name="obj<#= EntityClassName #>">实体实例</param>
+		/// <returns>true 更新成功; false 更新失败</returns>
+		public static bool Update<#= ReTableName #>(<#= EntityClassName #> obj<#= EntityClassName #>)
+		{
+			if (obj<#= EntityClassName #> == null)
+			{
+				return false;
+			}
+			try
+			{
+				return DataAccessCommon.Update(obj<#= EntityClassName #>);
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+		}
+		#endregion
+
+		#region Delete
+		/// <summary>
+		/// 删除数据
+		/// </summary>
+		/// <param name="obj<#= EntityClassName #>">实体实例</param>
+		/// <returns>true 删除成功; false 删除失败</returns>
+		public static bool Delete<#= ReTableName #>(<#= EntityClassName #> obj<#= EntityClassName #>)
+		{
+			if (obj<#= EntityClassName #> == null)
+			{
+				return false;
+			}
+			try
+			{
+				return DataAccessCommon.Delete(obj<#= EntityClassName #>);
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+		}
+		#endregion
+
+		#region GetAll
+		/// <summary>
+		/// 获取所有数据
+		/// </summary>
+		/// <returns>返回所有数据</returns>
+		public static DataSet Get<#= ReTableName #>All()
+		{
+			try
+			{
+				return <#= AccessClassName #>.Get<#= ReTableName #>All();
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+		}
+		#endregion
+
+		#region GetDSByCondition
+		/// <summary>
+		/// 获取符合条件的DS
+		/// </summary>
+		/// <returns>返回DS</returns>
+		public static DataSet GetDSByCondition(string strCondition)
+		{
+			try
+			{
+				return <#= AccessClassName #>.GetDSByCondition(strCondition);
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+		}
+		#endregion
+
+		#region GetByCondition
+		/// <summary>
+		/// 获取符合条件的数据实体
+		/// </summary>
+		/// <returns>返回数据实体</returns>
+		public static List<<#= EntityClassName #>> GetByCondition(string strCondition)
+		{
+			try
+			{
+				return <#= AccessClassName #>.GetByCondition(strCondition);
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+		}
+		#endregion
+	}
+
+}
+<#+
+
+		public string NameSpace
+		{
+			set;
+			get;
+		}
+
+        public string TableName
+        {
+			set;
+            get;
+        }
+
+        public DataTable DtColunms
+        {
+			set;
+            get;
+        }
+
+        public string BusinessClassName
+        {
+            get
+            {
+                return TableName.Replace("_", "");
+            }
+        }
+
+        public string AccessClassName
+        {
+            get
+            {
+                return TableName.Replace("_", "") + "DA";
+            }
+        }
+
+        public string EntityClassName
+        {
+            get
+            {
+                return TableName.Replace("_", "") + "Entity";
+            }
+        }
+
+        public string TableClassName
+        {
+            get
+            {
+                 return TableName.Replace("_", "") + "Table";
+            }
+        }
+
+        public string ReTableName
+        {
+            get
+            {
+                 return TableName.Replace("_", "");
+            }
+        }
+
+        public string[] PrimaryColunm
+        {
+            get
+            {
+                string[] colum = new string[3];
+                DataRow[] KeyRow = DtColunms.Select("ISPkID='1'");
+
+                if (KeyRow.Length > 0)
+                {
+                    colum[0] = KeyRow[0]["ColunmName"].ToString().ToUpper();
+                    colum[1] = Config.ConvertDbType(KeyRow[0]["TypeName"].ToString());
+					colum[2] = KeyRow[0]["is_identity"].ToString();
+                }
+                else
+                {
+                    colum[0] = DtColunms.Rows[0]["ColunmName"].ToString().ToUpper();
+                    colum[1] = Config.ConvertDbType(DtColunms.Rows[0]["TypeName"].ToString());
+					colum[2] = DtColunms.Rows[0]["is_identity"].ToString();
+                }
+				return colum;
+            }
+        }
+
+
+#>

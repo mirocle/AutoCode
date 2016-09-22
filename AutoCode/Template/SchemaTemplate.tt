@@ -1,0 +1,155 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ Import namespace="System.Data" #>
+<#@ Import namespace="AutoCode.Config" #>
+
+using System;
+using Core.EntityCore;
+
+<#
+	if(NameSpace =="")
+	{
+#>
+namespace Common
+<#
+	}
+	else
+	{
+#>
+namespace <#=NameSpace #>.Common
+<#
+	}
+#>
+{
+	[Serializable]
+	public class <#= ClassName #> : TableInfo
+	{
+		public const string C_TABLENAME = "<#= OriginalTableName #>"; 
+
+		<#
+		    foreach (DataRow row in DtColunms.Rows)
+			{
+		#>
+public const string C_<#= row["ColunmName"].ToString() #> = "<#= row["ColunmName"].ToString() #>";
+		<#
+			}
+		#>
+		
+		public <#= ClassName #>()
+		{
+			_tableName ="<#= OriginalTableName #>";
+
+			<#
+			if(PrimaryColunm[2]=="True")
+			{
+			#>
+_hasIdentityPK = true; 
+			<#
+			}
+			#>
+
+		}
+
+		protected static <#= ClassName #> _current;
+
+		public static <#= ClassName #> Current
+		{
+			get
+			{
+				if (_current == null )
+				{
+					Initial();
+				}
+				return _current;
+			}
+		}
+
+		private static void Initial()
+		{
+			_current = new <#= ClassName #>();
+
+			<#
+		    foreach (DataRow row in DtColunms.Rows)
+			{
+			#>
+_current.Add(C_<#= row["ColunmName"].ToString() #>, new ColumnInfo(C_<#= row["ColunmName"].ToString() #>, "", <#= Config.IsPkid(row["ISPkID"].ToString()) #>, typeof(<#= Config.ConvertDbType(row["TypeName"].ToString()) #>)));
+			<#
+			}
+			#>
+			
+		}
+
+		<#
+		    foreach (DataRow row in DtColunms.Rows)
+			{
+		#>
+public ColumnInfo <#= row["ColunmName"].ToString() #>
+		{
+			get { return this[C_<#= row["ColunmName"].ToString() #>];}
+		}
+
+		<#
+			}
+		#>
+
+	}
+}
+
+
+<#+
+
+		public string NameSpace
+		{
+			set;
+			get;
+		}
+
+        public string TableName
+        {
+			set;
+            get;
+        }
+
+        public string OriginalTableName
+        {
+			set;
+            get;
+        }
+
+        public DataTable DtColunms
+        {
+			set;
+            get;
+        }
+
+        public string ClassName
+        {
+            get
+            {
+                return TableName.Replace("_", "") + "Table";
+            }
+        }
+
+        public string[] PrimaryColunm
+        {
+            get
+            {
+                string[] colum = new string[3];
+                DataRow[] KeyRow = DtColunms.Select("ISPkID='1'");
+
+                if (KeyRow.Length > 0)
+                {
+                    colum[0] = KeyRow[0]["ColunmName"].ToString().ToUpper();
+                    colum[1] = Config.ConvertDbType(KeyRow[0]["TypeName"].ToString());
+					colum[2] = KeyRow[0]["is_identity"].ToString();
+                }
+                else
+                {
+                    colum[0] = DtColunms.Rows[0]["ColunmName"].ToString().ToUpper();
+                    colum[1] = Config.ConvertDbType(DtColunms.Rows[0]["TypeName"].ToString());
+					colum[2] = DtColunms.Rows[0]["is_identity"].ToString();
+                }
+				return colum;
+            }
+        }
+#>

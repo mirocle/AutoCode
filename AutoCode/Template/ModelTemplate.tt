@@ -1,0 +1,73 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ Import namespace="System.Data" #>
+<#@ Import namespace="AutoCode.Config" #>
+
+using System;
+
+<#
+	if(NameSpace =="")
+	{
+#>
+namespace Common
+<#
+	}
+	else
+	{
+#>
+namespace <#=NameSpace #>.Common
+<#
+	}
+#>
+{
+	[Serializable]
+	public class <#=ModelClassName #>
+	{
+		#region 属性列表
+		<#
+		    foreach (DataRow row in DtColunms.Rows)
+			{
+		#>
+
+		public <#= Config.ConvertDbType(row["TypeName"].ToString()) #> <#= row["ColunmName"].ToString().Substring(0, 1).ToUpper() + row["ColunmName"].ToString().Substring(1).ToLower()#>
+		{				
+			get;
+			set;
+		}
+
+		<#
+			}
+		#>
+
+		#endregion
+	}
+}
+
+<#+
+
+		public string NameSpace
+		{
+			set;
+			get;
+		}
+
+        public string TableName
+        {
+			set;
+            get;
+        }
+
+        public DataTable DtColunms
+        {
+			set;
+            get;
+        }
+
+        public string ModelClassName
+        {
+            get
+            {
+                return TableName.Replace("_", "") + "Model";
+            }
+        }
+#>

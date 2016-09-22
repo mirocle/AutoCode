@@ -1,0 +1,168 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ Import namespace="System.Data" #>
+<#@ Import namespace="AutoCode.Config" #>
+
+
+using System;
+using System.Collections.Generic;
+using System.Data;
+using Core.DataAccess;
+<#
+	if(NameSpace =="")
+	{
+#>
+using Common;
+
+namespace DataAccess
+<#
+	}
+	else
+	{
+#>
+using <#=NameSpace #>.Common;
+
+namespace <#=NameSpace #>.DataAccess
+<#
+	}
+#>
+{
+	public partial class <#=AccessClassName #>
+	{
+		#region GetByID
+
+		/// <summary>
+		/// 取得实体
+		/// </summary>
+		/// <param name="id">实体关键字</param>
+		/// <returns></returns>
+		public static <#=EntityClassName #> Get<#=ReTableName #>ByID(<#=PrimaryColunm[1] #> id)
+		{
+			string strSQL = "SELECT * FROM " + <#=TableClassName #>.C_TABLENAME;
+			WhereBuilder wb = new WhereBuilder(strSQL);
+			wb.AddAndCondition(<#=TableClassName #>.C_<#=PrimaryColunm[0] #>, SQLOperator.Equal, id);
+			return DataAccessCommon.SelectSingle<<#=EntityClassName #>>(wb);
+		}
+
+		#endregion
+
+		#region GetAll
+
+		/// <summary>
+		/// 获取所有数据
+		/// </summary>
+		/// <returns>所有数据集合</returns>
+		public static DataSet Get<#=ReTableName #>All()
+		{
+			string strSQL = "SELECT * FROM " + <#=TableClassName #>.C_TABLENAME;
+			return DataAccessCommon.SelectDataSet(strSQL);
+		}
+
+		#endregion
+
+		#region GetByCondition
+
+		/// <summary>
+		/// 根据Condition获取DS
+		/// </summary>
+		/// <returns>所有数据集合</returns>
+		public static DataSet GetDSByCondition(string strCondition)
+		{
+			string strSQL = "SELECT * FROM " + <#=TableClassName #>.C_TABLENAME;
+			WhereBuilder wb = new WhereBuilder(strSQL);
+			wb.AddCondition(strCondition);
+			return DataAccessCommon.SelectDataSet(wb);
+		}
+
+		/// <summary>
+		/// 根据Condition获取实体集合
+		/// </summary>
+		/// <param name="strCondition">SQL条件</param>
+		/// <returns>实体集合</returns>
+		public static List<<#=EntityClassName #>> GetByCondition(string strCondition)
+		{
+			string strSQL = "SELECT * FROM " + <#=TableClassName #>.C_TABLENAME;
+			WhereBuilder wb = new WhereBuilder(strSQL);
+			wb.AddCondition(strCondition);
+			return DataAccessCommon.Select<<#=EntityClassName #>>(wb);
+		}
+
+		#endregion
+	}
+}
+
+<#+
+
+		public string NameSpace
+		{
+			set;
+			get;
+		}
+
+        public string TableName
+        {
+			set;
+            get;
+        }
+
+        public DataTable DtColunms
+        {
+			set;
+            get;
+        }
+
+        public string AccessClassName
+        {
+            get
+            {
+                return TableName.Replace("_", "") + "DA";
+            }
+        }
+
+        public string EntityClassName
+        {
+            get
+            {
+                return TableName.Replace("_", "") + "Entity";
+            }
+        }
+
+        public string TableClassName
+        {
+            get
+            {
+                 return TableName.Replace("_", "") + "Table";
+            }
+        }
+
+        public string ReTableName
+        {
+            get
+            {
+                 return TableName.Replace("_", "");
+            }
+        }
+
+        public string[] PrimaryColunm
+        {
+            get
+            {
+                string[] colum = new string[2];
+                DataRow[] KeyRow = DtColunms.Select("ISPkID='1'");
+
+                if (KeyRow.Length > 0)
+                {
+                    colum[0] = KeyRow[0]["ColunmName"].ToString();
+                    colum[1] = Config.ConvertDbType(KeyRow[0]["TypeName"].ToString());
+                }
+                else
+                {
+                    colum[0] = DtColunms.Rows[0]["ColunmName"].ToString();
+                    colum[0] = Config.ConvertDbType(DtColunms.Rows[0]["TypeName"].ToString());
+                }
+				return colum;
+            }
+        }
+
+
+#>

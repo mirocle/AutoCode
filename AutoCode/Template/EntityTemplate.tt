@@ -1,0 +1,114 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ Import namespace="System.Data" #>
+<#@ Import namespace="AutoCode.Config" #>
+
+using System;
+using Core.EntityCore;
+
+<#
+	if(NameSpace =="")
+	{
+#>
+namespace Common
+<#
+	}
+	else
+	{
+#>
+namespace <#=NameSpace #>.Common
+<#
+	}
+#>
+{
+	[Serializable]
+	public class <#=EntityClassName #> : EntityBase
+	{
+		public <#=TableClassName #> TableSchema
+		{
+			get
+			{
+				return (<#=TableClassName #>)_tableSchema;
+			}
+		}
+
+		public <#=EntityClassName #>()
+		{
+			_tableSchema = <#=TableClassName #>.Current;
+		}
+
+		#region 属性列表
+		<#
+		    foreach (DataRow row in DtColunms.Rows)
+			{
+		#>
+
+		public <#= Config.ConvertDbType(row["TypeName"].ToString()) #> <#= row["ColunmName"].ToString().Substring(0, 1).ToUpper() + row["ColunmName"].ToString().Substring(1).ToLower()#>
+		{
+
+			<#
+				if(Config.ConvertDbType(row["TypeName"].ToString())=="string")
+				{
+			#>
+				
+			get{ return Convert.To<#= Config.ConvertDbType(row["TypeName"].ToString()).Replace("?","").Replace("s","S") #>(GetData(<#= TableClassName #>.C_<#= row["ColunmName"].ToString()#>));} 
+
+			<#
+				}
+				else
+				{
+			#>
+
+			get{ return GetData<<#= Config.ConvertDbType(row["TypeName"].ToString()).Replace("?","") #>>(<#= TableClassName #>.C_<#= row["ColunmName"].ToString()#>); }
+			
+			<#
+				}
+			#>
+
+			set{ SetData(<#= TableClassName #>.C_<#= row["ColunmName"].ToString() #>, value); }
+		}
+
+		<#
+			}
+		#>
+
+		#endregion
+	}
+}
+
+<#+
+
+		public string NameSpace
+		{
+			set;
+			get;
+		}
+
+        public string TableName
+        {
+			set;
+            get;
+        }
+
+        public DataTable DtColunms
+        {
+			set;
+            get;
+        }
+
+        public string EntityClassName
+        {
+            get
+            {
+                return TableName.Replace("_", "") + "Entity";
+            }
+        }
+
+        public string TableClassName
+        {
+            get
+            {
+                return TableName.Replace("_", "") + "Table";
+            }
+        }
+#>
